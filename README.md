@@ -81,16 +81,17 @@ cp config.json.example config.json
 python webapp.py          # 或双击 start_web.bat（Windows）
 ```
 
-打开 <http://127.0.0.1:8765>，点「测试连接」验证账号与 AI 接口，再点「开始刷题」。
+打开 <http://127.0.0.1:17865>，点「测试连接」验证账号与 AI 接口，再点「开始刷题」。
 
 `start_web.bat` 会自己找一个装了 `fastapi + uvicorn + requests` 的 Python
 （依次试 `py -3` / `python` / `python3`），不用改脚本里的路径。
 
-端口默认 8765，可换：
+端口默认 **17865**（故意选了个偏门号，避开 3000 / 5000 / 8000 / 8080 / 8765 这些
+天天被别的工具占用的），可换：
 
 ```bash
-set OJ_PORT=8766 && python webapp.py     # Windows
-OJ_PORT=8766 python webapp.py            # Linux / macOS
+set OJ_PORT=17866 && python webapp.py     # Windows
+OJ_PORT=17866 python webapp.py            # Linux / macOS
 ```
 
 端口被占用时会直接提示「已被占用，多半是已经在跑」，不会甩一坨 `[Errno 10048]`。
@@ -288,8 +289,10 @@ quick_OJ/
 装依赖：`pip install -r requirements.txt`；机器上多套 Python 时直接指定：
 `"C:\Python313\python.exe" webapp.py`。脚本里没有任何个人路径。
 
-**启动后提示「端口 8765 已被占用」**
-已经有一个控制台在跑。直接开 <http://127.0.0.1:8765>，或者 `set OJ_PORT=8766 && python webapp.py` 换端口。
+**启动后提示「端口 17865 已被占用」**
+已经有一个控制台在跑（或者被别的程序占了）。直接开 <http://127.0.0.1:17865>，
+或者 `set OJ_PORT=17866 && python webapp.py` 换端口。
+**注意不要同时开两个控制台**——它们共用同一份 `config.json`，并发写会把配置搅乱。
 
 **登录一直 `Invalid captcha value`**
 识别慢或网络慢导致验证码过期。确认用的是视觉快模型、没有并发批量、机器到 OJ 的延迟正常。

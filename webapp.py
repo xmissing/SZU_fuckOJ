@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 OJ 自动刷题 Web 控制台
-    python webapp.py   ->  http://127.0.0.1:8765
+    python webapp.py   ->  http://127.0.0.1:17865   （换端口：set OJ_PORT=xxxxx）
 """
 import asyncio, io, json, os, queue, sys, threading, time, traceback
 
@@ -510,7 +510,7 @@ if __name__ == '__main__':
     import webbrowser
     import uvicorn
 
-    PORT = int(os.environ.get('OJ_PORT', '8765'))
+    PORT = int(os.environ.get('OJ_PORT', '17865'))
     URL = f'http://127.0.0.1:{PORT}'
 
     # 端口占用时给一句人话，而不是甩一坨 [Errno 10048]
@@ -519,7 +519,9 @@ if __name__ == '__main__':
             _s.bind(('127.0.0.1', PORT))
         except OSError:
             print(f'[错误] 端口 {PORT} 已被占用 —— 多半是控制台已经在跑。')
-            print(f'       直接打开 {URL} 看；或换个端口：set OJ_PORT=8766 && python webapp.py')
+            print(f'       直接打开 {URL} 看；或换个端口：')
+            print(f'           set OJ_PORT={PORT + 1} && python webapp.py      (Windows)')
+            print(f'           OJ_PORT={PORT + 1} python webapp.py             (Linux/macOS)')
             raise SystemExit(2)
 
     print(f'控制台: {URL}')
