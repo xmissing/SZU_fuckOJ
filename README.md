@@ -1,5 +1,13 @@
 # quick_OJ · 自动登录 + AI 刷题控制台
 
+> **⬇️ 只想用，不想装环境？**
+> 到 **[Releases](https://github.com/xmissing/SZU_fuckOJ/releases/latest)** 下载 `quick_OJ-v1.0.1-win64.zip`（14.7 MB）——
+> **自带 Python 运行时和全部依赖**，解压双击 `start_web.bat` 就能用，机器上什么都不用装。
+>
+> 直链 <https://github.com/xmissing/SZU_fuckOJ/releases/latest/download/quick_OJ-v1.0.1-win64.zip>
+>
+> ⚠️ 不要点仓库右上角 `Code → Download ZIP`，那是纯源码，不含运行时，下了解压跑不起来。
+
 针对 **SZUOJ / OJds_ai** 系 OJ 的自动化工具：AI 识别验证码完成登录，读取进行中的实验与题目，
 逐题让大模型生成 C 代码，本地编译验样例后提交，轮询判题结果，失败自动重试。
 
