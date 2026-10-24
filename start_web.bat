@@ -2,27 +2,30 @@
 setlocal
 cd /d "%~dp0"
 
+rem Find a Python that already has fastapi + uvicorn + requests.
 set "PY="
-for %%P in ("py -3" "python" "python3") do (
-    if not defined PY (
-        %%P -c "import fastapi, uvicorn, requests" >nul 2>nul && set "PY=%%P"
-    )
-)
+call :try_py "py -3"
+if not defined PY call :try_py "python"
+if not defined PY call :try_py "python3"
 
 if not defined PY (
     echo.
-    echo [ERROR] 没找到装了 fastapi + uvicorn + requests 的 Python。
-    echo 先装依赖：
-    echo     pip install -r requirements.txt
+    echo [ERROR] No Python with fastapi + uvicorn + requests was found.
+    echo.
+    echo         Install the dependencies first:
+    echo             pip install -r requirements.txt
+    echo.
+    echo         If you have several Pythons, point to one explicitly:
+    echo             "C:\Python313\python.exe" webapp.py
     echo.
     pause
     exit /b 1
 )
 
 echo ==========================================
-echo   OJ Auto Console  -  http://127.0.0.1:8765
+echo   OJ Auto Console
 echo   Python: %PY%
-echo   关掉这个窗口即停止服务。
+echo   Close this window to stop the server.
 echo ==========================================
 echo.
 
@@ -30,7 +33,14 @@ echo.
 
 if errorlevel 1 (
     echo.
-    echo [ERROR] 启动失败，看上面的报错。
+    echo [ERROR] Startup failed - see the message above.
     pause
 )
 endlocal
+exit /b 0
+
+:try_py
+rem %~1 = candidate interpreter, may carry arguments (e.g. py -3)
+%~1 -c "import fastapi, uvicorn, requests" >nul 2>nul
+if not errorlevel 1 set "PY=%~1"
+exit /b 0

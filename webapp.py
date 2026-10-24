@@ -505,12 +505,24 @@ app.mount('/static', StaticFiles(directory=os.path.join(BASE_DIR, 'static')), na
 
 
 if __name__ == '__main__':
+    import socket
     import threading
     import webbrowser
     import uvicorn
 
-    URL = 'http://127.0.0.1:8765'
+    PORT = int(os.environ.get('OJ_PORT', '8765'))
+    URL = f'http://127.0.0.1:{PORT}'
+
+    # 端口占用时给一句人话，而不是甩一坨 [Errno 10048]
+    with socket.socket() as _s:
+        try:
+            _s.bind(('127.0.0.1', PORT))
+        except OSError:
+            print(f'[错误] 端口 {PORT} 已被占用 —— 多半是控制台已经在跑。')
+            print(f'       直接打开 {URL} 看；或换个端口：set OJ_PORT=8766 && python webapp.py')
+            raise SystemExit(2)
+
     print(f'控制台: {URL}')
     if os.environ.get('OJ_NO_BROWSER') != '1':
         threading.Timer(1.5, lambda: webbrowser.open(URL)).start()
-    uvicorn.run(app, host='127.0.0.1', port=8765, log_level='warning')
+    uvicorn.run(app, host='127.0.0.1', port=PORT, log_level='warning')
