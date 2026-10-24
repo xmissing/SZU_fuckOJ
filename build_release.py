@@ -31,7 +31,13 @@ INCLUDE_FILES = [
 INCLUDE_DIRS = ['static', 'runtime']
 # 无论在哪都跳过
 SKIP_DIRS = {'__pycache__', 'work', '.git', '_dl'}
-SKIP_EXT = {'.pyc', '.pyo', '.zip', '.log'}
+# 只跳字节码。千万别把 .zip 往这里加：嵌入式 Python 的标准库就在 runtime/python311.zip，
+# 排掉它等于把运行时砍了半条命 —— 症状是包里的 python.exe 起不来，bat 悄悄退回系统 Python，
+# 在你自己的机器上看不出问题，别人的机器上直接崩。
+SKIP_EXT = {'.pyc', '.pyo'}
+# 打完包必须存在的东西，少一个就说明过滤规则写错了
+MUST_HAVE = ['runtime/python.exe', 'runtime/python311.zip', 'runtime/python311.dll',
+             'runtime/python311._pth', 'start_web.bat', 'webapp.py', 'static/index.html']
 
 
 def setup_runtime():
@@ -87,15 +93,25 @@ def collect():
 
 def build():
     items = collect()
-    out = os.path.join(ROOT, f'quick_OJ-v1.0.1-win64.zip')
+    out = os.path.join(ROOT, 'quick_OJ-v1.0.1-win64.zip')
     if os.path.exists(out):
         os.remove(out)
     print(f'打包 {len(items)} 个文件 -> {os.path.basename(out)}')
     with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         for ap, rp in items:
             z.write(ap, 'quick_OJ/' + rp)
+
+    # 自检：缺文件就当场失败，别等用户解压后双击闪退
+    with zipfile.ZipFile(out) as z:
+        names = set(z.namelist())
+    missing = [m for m in MUST_HAVE if 'quick_OJ/' + m not in names]
+    if missing:
+        os.remove(out)
+        sys.exit(f'[错误] 包内缺少关键文件，已丢弃产物：{missing}\n'
+                 f'        检查 INCLUDE_DIRS / SKIP_DIRS / SKIP_EXT 是否过滤过头。')
+
     size = os.path.getsize(out) / 1024 / 1024
-    print(f'完成：{out}  ({size:.1f} MB)')
+    print(f'完成：{out}  ({size:.1f} MB，{len(names)} 个条目，关键文件自检通过)')
     return out
 
 
