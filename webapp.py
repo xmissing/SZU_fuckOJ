@@ -20,16 +20,16 @@ LOG_FILE = os.path.join(BASE_DIR, 'run.log')
 
 # 支持切换的站点（改成你自己的 OJ 地址）
 SITE_META = {
-    '62': {'base': 'http://oj.example.com', 'name': '站点 1'},
-    '61': {'base': 'http://oj2.example.com', 'name': '站点 2'},
+    '62': {'base': 'http://172.31.221.62', 'name': '站点 1'},
+    '61': {'base': 'http://172.31.221.61', 'name': '站点 2'},
 }
 
 DEFAULT_CFG = {
     'site': '62',
     'sites': {
-        '62': {'base': 'http://oj.example.com', 'name': '站点 1',
+        '62': {'base': 'http://172.31.221.62', 'name': '站点 1',
                'username': '', 'password': ''},
-        '61': {'base': 'http://oj2.example.com', 'name': '站点 2',
+        '61': {'base': 'http://172.31.221.61', 'name': '站点 2',
                'username': '', 'password': ''},
     },
     'api_base': 'http://127.0.0.1:7863/v1',
@@ -98,7 +98,7 @@ def apply_cfg(cfg, site=None):
     """把配置同步进 oj_main / oj_login / llm"""
     site = str(site or cfg.get('site') or '62')
     info = cfg.get('sites', {}).get(site, {})
-    base = (info.get('base') or SITE_META.get(site, {}).get('base') or 'http://oj.example.com')
+    base = (info.get('base') or SITE_META.get(site, {}).get('base') or 'http://172.31.221.62')
     oj_login.set_site(base)
     oj_main.SITE = site
     oj_main.USERNAME = info.get('username', '')

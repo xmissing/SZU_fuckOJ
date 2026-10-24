@@ -2,13 +2,13 @@
   "site": "62",
   "sites": {
     "62": {
-      "base": "http://oj.example.com",
+      "base": "http://172.31.221.62",
       "name": "站点 1",
       "username": "",
       "password": ""
     },
     "61": {
-      "base": "http://oj2.example.com",
+      "base": "http://172.31.221.61",
       "name": "站点 2",
       "username": "",
       "password": ""

@@ -3,7 +3,7 @@ const $ = (id) => document.getElementById(id);
 const RING_C = 2 * Math.PI * 52;
 
 /* 两个 OJ 站点的兜底信息（config.json 里带了就用配置的） */
-const SITE_FALLBACK = { '62': 'http://oj.example.com', '61': 'http://oj2.example.com' };
+const SITE_FALLBACK = { '62': 'http://172.31.221.62', '61': 'http://172.31.221.61' };
 const SITE_LABEL = { '62': '站点 1', '61': '站点 2' };
 let modalSite = null;
 

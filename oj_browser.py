@@ -12,7 +12,7 @@ from DrissionPage import ChromiumPage
 
 import llm
 
-SITE_BASE = os.getenv('OJ_SITE_BASE', 'http://oj.example.com').rstrip('/')
+SITE_BASE = os.getenv('OJ_SITE_BASE', 'http://172.31.221.62').rstrip('/')
 LOGIN_URL = SITE_BASE + '/#/login'
 USERNAME, PASSWORD = os.getenv('OJ_USER', ''), os.getenv('OJ_PASS', '')
 

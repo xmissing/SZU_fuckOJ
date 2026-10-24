@@ -45,20 +45,27 @@ gcc --version     # Windows 可用 MinGW-w64 / TDM-GCC
 cp config.json.example config.json
 ```
 
-编辑 `config.json`，把站点地址和账号填进去：
+编辑 `config.json`，填账号和 AI 密钥。
+
+**站点地址是内置的，不用改**（两个固定的内网 OJ 实例）：
+
+| 站点键 | 地址 | 说明 |
+|---|---|---|
+| `62` | `http://172.31.221.62` | 内网，需连校园网 / VPN |
+| `61` | `http://172.31.221.61` | 内网，需连校园网 / VPN |
 
 ```json
 {
   "site": "62",
   "sites": {
     "62": {
-      "base": "http://你的OJ地址1",
+      "base": "http://172.31.221.62",
       "name": "站点 1",
       "username": "你的学号",
       "password": "你的密码"
     },
     "61": {
-      "base": "http://你的OJ地址2",
+      "base": "http://172.31.221.61",
       "name": "站点 2",
       "username": "另一个学号",
       "password": "另一个密码"
@@ -73,7 +80,8 @@ cp config.json.example config.json
 ```
 
 `api_base` 任意 **OpenAI 兼容**端点都行（官方、自建网关、Ollama、one-api 等）。
-只有一个 OJ 的话，把 `sites` 里多余的那个删掉，并让 `site` 指向留下的那个即可。
+只有一个 OJ 的话，把 `sites` 里多余的那个删掉，并让 `site` 指向留下的那个即可；
+`base` 也能改（比如走反向代理换了域名），界面上的齿轮「站点设置」就是干这个的。
 
 ### 3. 启动
 
@@ -108,7 +116,7 @@ OJ_PORT=17866 python webapp.py            # Linux / macOS
 | `OJ_AI_BASE` | AI 接口地址 | `http://127.0.0.1:7863/v1` |
 | `OJ_AI_MODEL` | 生成代码用的模型 | `cn:deepseek-v4.1-flash` |
 | `OJ_CAPTCHA_MODEL` | 识别验证码用的视觉模型 | `cn:glm-5v-turbo` |
-| `OJ_SITE_BASE` | OJ 地址（命令行模式） | `http://oj.example.com` |
+| `OJ_SITE_BASE` | OJ 地址（命令行模式） | `http://172.31.221.62` |
 | `OJ_USER` / `OJ_PASS` | 账号 / 密码（命令行模式） | 空 |
 | `OJ_CONTEST_ID` | 限定实验 id（命令行模式） | 空 |
 

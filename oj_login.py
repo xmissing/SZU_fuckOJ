@@ -19,8 +19,8 @@ import llm
 # 视觉专用快模型，专门用来认验证码；做题生成代码仍用 llm.MODEL
 CAPTCHA_MODEL = os.getenv('OJ_CAPTCHA_MODEL', 'cn:glm-5v-turbo')
 
-# 站点可切换：set_site('http://your-oj.example.com')
-DEFAULT_SITE = os.getenv('OJ_SITE_BASE', 'http://oj.example.com')
+# 站点可切换：set_site('http://172.31.221.62')
+DEFAULT_SITE = os.getenv('OJ_SITE_BASE', 'http://172.31.221.62')
 SITE_BASE = DEFAULT_SITE
 OJS = SITE_BASE + '/api'
 
