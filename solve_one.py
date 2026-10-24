@@ -6,7 +6,7 @@
     python solve_one.py <题目id> <实验id>       # 指定实验
     python solve_one.py <题目id> <实验id> -k    # 只生成 + 本地验样例，不提交
 """
-import html, json, os, re, subprocess, sys, time
+import html, json, os, re, shutil, subprocess, sys, time
 
 import llm
 import oj_login
@@ -59,7 +59,10 @@ def run_local(code, sample_in, p):
     src = os.path.join(WORK, f"p{p['id']}.c")
     exe = os.path.join(WORK, f"p{p['id']}.exe")
     open(src, 'w', encoding='utf-8').write(code)
-    r = subprocess.run(['gcc', '-O2', '-std=c99', '-o', exe, src],
+    gcc = shutil.which('gcc') or shutil.which('cc') or shutil.which('clang')
+    if not gcc:
+        return None, 'NO_GCC'
+    r = subprocess.run([gcc, '-O2', '-std=c99', '-o', exe, src],
                        capture_output=True, text=True, timeout=120)
     if r.returncode != 0:
         return None, 'COMPILE ERROR:\n' + r.stderr[:800]
@@ -128,12 +131,16 @@ if __name__ == '__main__':
 
     out, err = run_local(code, p['sample_input'][0] if p['sample_input'] else '', p)
     print('--- 本地运行 ---')
-    print('ERR:', err)
-    print('OUT:', repr(out))
-    want = p['sample_output'][0] if p['sample_output'] else ''
-    print('期望:', repr(want))
-    if out is not None:
-        print('样例一致:', out.strip() == want.strip())
+    if err == 'NO_GCC':
+        print('本机没装 gcc，跳过本地样例校验，直接提交')
+        err = None
+    else:
+        print('ERR:', err)
+        print('OUT:', repr(out))
+        want = p['sample_output'][0] if p['sample_output'] else ''
+        print('期望:', repr(want))
+        if out is not None:
+            print('样例一致:', out.strip() == want.strip())
 
     if keep_only:
         sys.exit(0)

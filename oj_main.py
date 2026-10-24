@@ -5,14 +5,15 @@ OJ 自动刷题主程序
 2. 找到未结束的实验（按 begin_time / end_time 判断）
 3. 逐题：AI 生成 C 代码 -> 本地编译验样例 -> 提交 -> 轮询判题 -> 失败重试
 """
-import html, json, os, re, subprocess, sys, time
+import html, json, os, re, shutil, subprocess, sys, time
 from datetime import datetime, timezone
 
 import llm
 import oj_login
 from oj_login import OJLogin
 
-WORK = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'work')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+WORK = os.path.join(BASE_DIR, 'work')
 os.makedirs(WORK, exist_ok=True)
 # 凭据不写死：命令行 / 网页会把 config.json 里的值注入这里
 USERNAME, PASSWORD = os.getenv('OJ_USER', ''), os.getenv('OJ_PASS', '')
@@ -26,8 +27,13 @@ def _ojs():
 
 
 def _sess_files():
-    """会话缓存按站点隔离，避免 61/62 互相串号"""
-    return f'session_{SITE}.json', f'session_{SITE}.user'
+    """会话缓存按站点隔离，避免 61/62 互相串号。
+
+    用绝对路径：双击 bat / 从快捷方式启动时 CWD 未必是程序目录，
+    相对路径会把会话文件甩到别的盘里。
+    """
+    return (os.path.join(BASE_DIR, f'session_{SITE}.json'),
+            os.path.join(BASE_DIR, f'session_{SITE}.user'))
 
 STATUS_NAME = {0: 'Accepted', 1: 'Partial Accepted', -1: 'Wrong Answer', -2: 'Runtime Error',
                -3: 'Time Limit Exceeded', -4: 'Memory Limit Exceeded', 4: 'Compile Error',
@@ -150,11 +156,34 @@ def build_prompt(p, feedback=None):
     return base
 
 
+_GCC_CACHE = []   # 空 = 没探测过；[''] = 探测过但没有；[路径] = 有
+
+
+def find_gcc():
+    """找本机的 C 编译器，找不到返回 None。
+
+    解压即用的分发包里不带编译器，没装 MinGW 的机器要能降级：
+    跳过本地样例校验，直接把代码交给 OJ 判。
+    """
+    if _GCC_CACHE:
+        return _GCC_CACHE[0] or None
+    for name in ('gcc', 'cc', 'clang'):
+        p = shutil.which(name)
+        if p:
+            _GCC_CACHE.append(p)
+            return p
+    _GCC_CACHE.append('')
+    return None
+
+
 def run_local(code, sample_in, pid):
     src = os.path.join(WORK, f'p{pid}.c')
     exe = os.path.join(WORK, f'p{pid}.exe')
     open(src, 'w', encoding='utf-8').write(code)
-    r = subprocess.run(['gcc', '-O2', '-std=c99', '-o', exe, src],
+    gcc = find_gcc()
+    if not gcc:
+        return None, 'NO_GCC'
+    r = subprocess.run([gcc, '-O2', '-std=c99', '-o', exe, src],
                        capture_output=True, text=True, timeout=120)
     if r.returncode != 0:
         return None, r.stderr[:800]
@@ -242,17 +271,21 @@ def solve_problem(s, contest, p, max_try=None):
             print('   AI 失败:', e)
             continue
         out, cerr = run_local(code, p['sample_input'][0] if p['sample_input'] else '', pid)
-        if cerr:
+        if cerr == 'NO_GCC':
+            print('   [跳过] 本机没装 gcc，不做本地样例校验，直接提交由 OJ 判题')
+            emit('skip_local', id=pid, reason='no_gcc')
+        elif cerr:
             print('   本地编译/运行问题:', cerr[:300])
             feedback = f'本地编译错误：\n{cerr[:600]}'
             continue
-        expect = (p['sample_output'][0] if p['sample_output'] else '').strip()
-        if out.strip() != expect:
-            print('   样例不符，实际:', repr(out[:200]), '期望:', repr(expect[:200]))
-            feedback = (f'本地样例运行结果与标准答案不一致。\n实际输出:\n{out[:500]}\n'
-                        f'期望输出:\n{expect[:500]}')
-            continue
-        print('   样例通过，提交...')
+        else:
+            expect = (p['sample_output'][0] if p['sample_output'] else '').strip()
+            if out.strip() != expect:
+                print('   样例不符，实际:', repr(out[:200]), '期望:', repr(expect[:200]))
+                feedback = (f'本地样例运行结果与标准答案不一致。\n实际输出:\n{out[:500]}\n'
+                            f'期望输出:\n{expect[:500]}')
+                continue
+            print('   样例通过，提交...')
         emit('submitting', id=pid)
         sub = submit(s, contest, pid, code)
         if not sub:

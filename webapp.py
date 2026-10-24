@@ -88,6 +88,12 @@ def load_cfg():
         cfg['sites'][sk].setdefault('name', meta['name'])
     if cfg.get('site') not in cfg['sites']:
         cfg['site'] = '62'
+    if not os.path.exists(CFG_FILE):
+        # 首次运行：把默认配置落盘，用户能在自己的文件夹里直接打开改
+        try:
+            save_cfg(cfg)
+        except Exception:
+            pass
     return cfg
 
 
@@ -530,6 +536,9 @@ if __name__ == '__main__':
 
     PORT = int(os.environ.get('OJ_PORT', '17865'))
     URL = f'http://127.0.0.1:{PORT}'
+
+    # 首次启动就把 config.json 落盘，用户打开文件夹能直接看到、直接改
+    load_cfg()
 
     # 端口占用时给一句人话，而不是甩一坨 [Errno 10048]
     with socket.socket() as _s:

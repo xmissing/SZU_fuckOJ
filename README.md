@@ -14,6 +14,7 @@
 ## 特性
 
 - **AI 识别验证码**：原图直送视觉模型，逐张串行，取图→识别→提交全链路 3 秒级
+- **开箱即用**：分发包内嵌 Python 3.11 运行时与全部依赖，解压双击 bat 即可，不装任何环境
 - **多站点切换**：不同 OJ 实例各自独立账号 / 会话 / 实验数据，互不串号
 - **端到端自动答题**：AI 出码 → 本地 gcc 编译 + 样例比对 → 提交 → 轮询 → 失败带反馈重试
 - **Web 控制台**：SSE 实时日志、题目进度环、实验下拉、随时停止、一键退出登录
@@ -24,30 +25,45 @@
 
 ## 快速开始
 
-> **不想用 git 的**：到 [Releases](https://github.com/xmissing/SZU_fuckOJ/releases) 下载 `quick_OJ-v1.0.0.zip`，解压即用。
+### 方式 A：下载即用（机器上什么都不用装）
 
-### 1. 装依赖
+1. 到 [Releases](https://github.com/xmissing/SZU_fuckOJ/releases) 下载 **`quick_OJ-v1.0.1-win64.zip`**（约 11 MB）
+2. 解压到任意目录（路径别带中文和空格，省得给自己找麻烦）
+3. 双击 `start_web.bat`
+4. 浏览器自动打开 `http://127.0.0.1:17865`
+
+首次启动会在程序目录生成 `config.json`，用记事本打开填学号 / 密码和 AI 密钥，回网页刷新即可。
+
+> 包里自带 Python 3.11 运行时和全部依赖（`runtime/` 文件夹，解压后约 31 MB）。
+> 机器上**不需要装 Python、不需要 pip**，断网也能启动。
+> `start_web.bat` 优先用自带的 `runtime\python.exe`，找不到才退回系统 Python。
+
+**gcc 是可选项**：装了就先本地编译跑样例、比对通过再提交，能省掉无谓的提交次数；
+没装也能正常跑，只是跳过本地校验、直接交给 OJ 判（判题本来就会返回错误信息，重试逻辑照样生效）。
+
+### 方式 B：从源码运行
 
 ```bash
 pip install -r requirements.txt
+python webapp.py
 ```
 
 > `numpy` / `pillow` / `DrissionPage` 只有 `oj_browser.py`（浏览器版登录、截图）才用得到，
 > 只想跑控制台的话可以不装。
+>
+> 想自己打一个带运行时的分发包：用 **Python 3.11** 执行
+> `python build_release.py --setup`（会下载嵌入式 Python 并装依赖），
+> 之后 `python build_release.py` 即可重新出包。
 
-还需要本机有 **gcc**（用于本地编译验样例）：
+### 配自己的信息
 
-```bash
-gcc --version     # Windows 可用 MinGW-w64 / TDM-GCC
-```
-
-### 2. 配自己的信息
+方式 A 首次启动已自动生成 `config.json`；方式 B 手动复制一份：
 
 ```bash
 cp config.json.example config.json
 ```
 
-编辑 `config.json`，填账号和 AI 密钥。
+编辑 `config.json` 填账号和 AI 密钥（也可以直接在网页上填，保存时会写回这个文件）。
 
 **站点地址是内置的，不用改**（两个固定的内网 OJ 实例）：
 
@@ -85,17 +101,15 @@ cp config.json.example config.json
 只有一个 OJ 的话，把 `sites` 里多余的那个删掉，并让 `site` 指向留下的那个即可；
 `base` 也能改（比如走反向代理换了域名），界面上的齿轮「站点设置」就是干这个的。
 
-### 3. 启动
+### 启动
 
-```bash
-python webapp.py          # 或双击 start_web.bat（Windows）
-```
+双击 `start_web.bat`（方式 A 就这么用），或命令行 `python webapp.py`。
 
 打开 <http://127.0.0.1:17865>，填好学号密码和 AI 密钥，直接点「开始刷题」就行——
 没登录会自动登录，登录成功后立刻开始做题；想先确认账号和实验对不对，再点「测试连接」。
 
-`start_web.bat` 会自己找一个装了 `fastapi + uvicorn + requests` 的 Python
-（依次试 `py -3` / `python` / `python3`），不用改脚本里的路径。
+`start_web.bat` 的解释器探测顺序：**自带的 `runtime\python.exe`** → `py -3` → `python` → `python3`，
+逐个试 `import fastapi, uvicorn, requests`，谁通用谁，不用改脚本里的路径。
 
 端口默认 **17865**（故意选了个偏门号，避开 3000 / 5000 / 8000 / 8080 / 8765 这些
 天天被别的工具占用的），可换：
@@ -219,9 +233,11 @@ quick_OJ/
 ├── oj_browser.py          # DrissionPage 浏览器版登录（可视化 / 截图）
 ├── solve_one.py           # 单题调试
 ├── llm.py                 # AI 接口封装（chat / 代码块提取 / 重试退避）
+├── build_release.py       # 打「解压即用」分发包（下载嵌入式 Python + 装依赖 + 打包）
 ├── static/                # 前端（原生 HTML/CSS/JS，深蓝主题）
+├── runtime/               # 仅分发包里有：Python 3.11 嵌入式运行时 + 依赖
 ├── config.json.example    # 配置模板，复制成 config.json 再填
-├── start_web.bat          # Windows 一键启动
+├── start_web.bat          # Windows 一键启动（优先用 runtime/）
 └── requirements.txt
 ```
 
@@ -300,9 +316,11 @@ quick_OJ/
 ## 常见问题
 
 **双击 `start_web.bat` 闪一下就没了 / 说找不到 Python**
-脚本按 `py -3` → `python` → `python3` 的顺序找一个**装了依赖**的解释器，都没找到就停住并提示。
-装依赖：`pip install -r requirements.txt`；机器上多套 Python 时直接指定：
-`"C:\Python313\python.exe" webapp.py`。脚本里没有任何个人路径。
+分发包里带了 `runtime\python.exe`，正常情况下不会出现这个提示。真出现了，八成是
+`runtime` 文件夹被安全软件删了、或者解压不完整——重新解压一次，并把解压目录加进白名单
+（嵌入式 `python.exe` 偶尔会被误报）。
+从源码跑的话，脚本按 `py -3` → `python` → `python3` 找一个装了依赖的解释器，
+装依赖：`pip install -r requirements.txt`。
 
 **启动后提示「端口 17865 已被占用」**
 已经有一个控制台在跑（或者被别的程序占了）。直接开 <http://127.0.0.1:17865>，
@@ -319,8 +337,9 @@ AI 网关账号池被打满了。降低并发（本工具现在默认串行）�
 判题队列堵了，不是代码错了。状态码 `5/6/7` 要等，别重复提交。
 
 **`gcc: command not found`**
-本地验样例依赖 gcc，装 MinGW-w64 并把 `bin` 加进 PATH；不想装也可以不管，
-只是失去提交前的样例自检。
+分发包**不带编译器**（Python 能塞进包里，MinGW 塞进去就太大了）。
+装了 gcc 就先本地验样例，没装也能跑——自动跳过本地校验直接提交，判题反馈照样能拿来重试。
+要装的话：MinGW-w64 / TDM-GCC，把 `bin` 加进 PATH 即可。
 
 **换站点后账号串了**
 每个站点必须有独立的 `sites.<键>`，`session_<站点>.json` 会自动隔离。

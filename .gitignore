@@ -33,3 +33,7 @@ Thumbs.db
 
 # ---- 打包产物（走 GitHub Release 挂 asset，不进仓库） ----
 *.zip
+
+# ---- 内置 Python 运行时 / 下载缓存（打 zip 时临时放的，不进仓库） ----
+runtime/
+_dl/
