@@ -24,7 +24,7 @@
 
 ## 快速开始
 
-> **不想用 git 的**：仓库根目录有 `quick_OJ-v1.0.0.zip`，下载解压即用（和源码同一份，只是打了包）。
+> **不想用 git 的**：到 [Releases](https://github.com/xmissing/SZU_fuckOJ/releases) 下载 `quick_OJ-v1.0.0.zip`，解压即用。
 
 ### 1. 装依赖
 

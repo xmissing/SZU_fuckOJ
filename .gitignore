@@ -30,3 +30,6 @@ venv/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# ---- 打包产物（走 GitHub Release 挂 asset，不进仓库） ----
+*.zip
