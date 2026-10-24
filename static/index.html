@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OJ Auto · 自动刷题控制台</title>
+<link rel="stylesheet" href="/static/styles.css?v=0">
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ 侧边栏 ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">◈</div>
+      <div class="brand-text">
+        <div class="brand-name">OJ Auto</div>
+        <div class="brand-sub" id="brandSub">站点 1 · 自动刷题</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a class="nav-item active" data-view="console" href="javascript:;">
+        <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+        控制台
+      </a>
+      <a class="nav-item" data-view="api" href="javascript:;">
+        <svg viewBox="0 0 24 24"><path d="M3.9 12a3.1 3.1 0 0 1 3.1-3.1h4V7H7a5 5 0 0 0 0 10h4v-1.9H7A3.1 3.1 0 0 1 3.9 12zM8 13h8v-2H8v2zm9-6h-4v1.9h4a3.1 3.1 0 0 1 0 6.2h-4V17h4a5 5 0 0 0 0-10z"/></svg>
+        API 连接
+      </a>
+    </nav>
+
+    <div class="side-foot">
+      <div class="side-status">
+        <span class="dot" id="sideDot"></span>
+        <span id="sideStatusText">空闲</span>
+      </div>
+      <div class="side-version">v1.1 · SZUOJ 适配</div>
+    </div>
+  </aside>
+
+  <!-- ============ 主区 ============ -->
+  <main class="main">
+
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="tb-row">
+          <div class="site-pick">
+            <span class="sp-label">OJ 站点</span>
+            <div class="site-btns" id="siteBtns"></div>
+            <button class="icon-btn" id="btnSiteEdit" title="站点设置：修改网址">
+              <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84a.48.48 0 0 0-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.48.48 0 0 0 .12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg>
+            </button>
+          </div>
+          <h1 id="contestTitle">未连接实验</h1>
+        </div>
+        <div class="topbar-meta">
+          <select id="contestSelect" class="mini-select" hidden></select>
+          <span class="site-login" id="siteLogin">未登录</span>
+          <button class="btn xs ghost danger" id="btnLogout" hidden title="清除本站点本地会话缓存">退出登录</button>
+          <span class="site-base" id="siteBase">http://oj.example.com</span>
+          <span id="contestRange">请选择站点后「测试连接」读取进行中的实验</span>
+          <span class="pill" id="countdownPill" hidden>倒计时 --:--:--</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn ghost" id="btnTest" title="登录并读取进行中的实验">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          测试连接
+        </button>
+        <button class="btn danger ghost" id="btnStop" disabled>
+          <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+          停止
+        </button>
+        <button class="btn primary" id="btnRun">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          开始刷题
+        </button>
+      </div>
+    </header>
+
+    <!-- ---------- 控制台 ---------- -->
+    <section class="view active" id="view-console">
+
+      <section class="stats">
+        <div class="stat-card">
+          <div class="stat-label">题目总数</div>
+          <div class="stat-value" id="statTotal">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">已 AC</div>
+          <div class="stat-value ok" id="statAc">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">当前题目</div>
+          <div class="stat-value small" id="statCurrent">—</div>
+          <div class="stat-hint" id="statCurrentHint">等待开始</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">运行时长</div>
+          <div class="stat-value mono" id="statElapsed">00:00</div>
+        </div>
+      </section>
+
+      <section class="mid">
+        <div class="card account-card">
+          <div class="card-head compact">
+            <div>
+              <h2>账号</h2>
+              <p>登录站点 <b id="accountSite">62</b> · <span id="accountSiteName">站点 1</span>
+                 <code id="accountSiteBase">http://oj.example.com</code></p>
+            </div>
+            <span class="chip">必填</span>
+          </div>
+          <div class="card-body tight">
+            <label class="field">
+              <span>学号</span>
+              <input id="username" type="text" autocomplete="username" placeholder="你的学号">
+            </label>
+            <label class="field">
+              <span>密码</span>
+              <div class="input-wrap">
+                <input id="password" type="password" autocomplete="current-password" placeholder="默认与学号相同">
+                <button class="eye" type="button" data-target="password" title="显示/隐藏">
+                  <svg viewBox="0 0 24 24"><path d="M12 5c-5 0-9 4.5-9 7s4 7 9 7 9-4.5 9-7-4-7-9-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>
+                </button>
+              </div>
+            </label>
+            <div class="field-row">
+              <label class="field">
+                <span>每题最多重试</span>
+                <input id="maxRetry" type="number" min="1" max="6" step="1" value="3">
+              </label>
+              <label class="field">
+                <span>本次最多题数</span>
+                <input id="limit" type="number" min="0" step="1" value="0" title="0 = 全部做完">
+              </label>
+            </div>
+            <p class="field-tip">本次最多题数填 <b>1</b> 即只做一道（测试用），填 <b>0</b> 表示全部。</p>
+          </div>
+        </div>
+
+        <div class="card progress-card" id="progress">
+          <div class="card-head compact">
+            <div>
+              <h2>题目进度</h2>
+              <p>实时同步判题结果</p>
+            </div>
+            <div class="progress-ring-wrap">
+              <svg class="ring" viewBox="0 0 120 120">
+                <circle class="ring-bg" cx="60" cy="60" r="52"/>
+                <circle class="ring-fg" id="ringFg" cx="60" cy="60" r="52"/>
+              </svg>
+              <div class="ring-label">
+                <strong id="ringPct">0%</strong>
+                <span>完成度</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-body tight scroll">
+            <ul class="problem-list" id="problemList">
+              <li class="empty">暂无数据，请先「测试连接」读取进行中的实验</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="card log-card" id="logs">
+        <div class="card-head compact">
+          <div>
+            <h2>运行日志</h2>
+            <p>实时输出，自动滚动</p>
+          </div>
+          <div class="log-tools">
+            <div class="seg">
+              <button class="seg-btn active" data-level="all">全部</button>
+              <button class="seg-btn" data-level="info">信息</button>
+              <button class="seg-btn" data-level="warn">警告</button>
+              <button class="seg-btn" data-level="error">错误</button>
+            </div>
+            <button class="btn tiny ghost" id="btnClear">清屏</button>
+          </div>
+        </div>
+        <div class="log-panel" id="logPanel"></div>
+      </section>
+
+    </section>
+
+    <!-- ---------- API 连接 ---------- -->
+    <section class="view" id="view-api">
+      <div class="api-layout">
+        <div class="api-intro">
+          <div class="api-icon">
+            <svg viewBox="0 0 24 24"><path d="M3.9 12a3.1 3.1 0 0 1 3.1-3.1h4V7H7a5 5 0 0 0 0 10h4v-1.9H7A3.1 3.1 0 0 1 3.9 12zM8 13h8v-2H8v2zm9-6h-4v1.9h4a3.1 3.1 0 0 1 0 6.2h-4V17h4a5 5 0 0 0 0-10z"/></svg>
+          </div>
+          <h2>AI 接口</h2>
+          <p>兼容 OpenAI 协议的端点，用于验证码识别与代码生成。配置保存在本地 <code>config.json</code>。</p>
+          <ul class="api-notes">
+            <li>验证码走视觉识别，模型需支持图片输入</li>
+            <li>生成代码时推理较长，建议模型支持大输出</li>
+            <li>地址填到 <code>/v1</code> 为止，不要带 <code>/chat/completions</code></li>
+          </ul>
+        </div>
+
+        <div class="card api-card">
+          <div class="card-head">
+            <div>
+              <h2>连接配置</h2>
+              <p>修改后自动保存</p>
+            </div>
+            <span class="chip cyan" id="apiChip">待检测</span>
+          </div>
+          <div class="card-body">
+            <label class="field">
+              <span>Base URL</span>
+              <input id="apiBase" type="text" placeholder="http://127.0.0.1:7863/v1">
+            </label>
+            <label class="field">
+              <span>API Key</span>
+              <div class="input-wrap">
+                <input id="apiKey" type="password" placeholder="sk-...">
+                <button class="eye" type="button" data-target="apiKey" title="显示/隐藏">
+                  <svg viewBox="0 0 24 24"><path d="M12 5c-5 0-9 4.5-9 7s4 7 9 7 9-4.5 9-7-4-7-9-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>
+                </button>
+              </div>
+            </label>
+            <label class="field">
+              <span>模型</span>
+              <input id="model" type="text" list="modelList" placeholder="cn:deepseek-v4.1-flash">
+              <datalist id="modelList">
+                <option value="cn:deepseek-v4.1-flash">
+                <option value="cn:glm-5.3-flash">
+                <option value="cn:deepseek-v4-pro">
+                <option value="cn:kimi-k3-1">
+              </datalist>
+            </label>
+
+            <div class="api-actions">
+              <button class="btn primary" id="btnPing">
+                <svg viewBox="0 0 24 24"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+                测试接口
+              </button>
+              <button class="btn ghost" id="btnSaveApi">保存配置</button>
+            </div>
+
+            <div class="api-result" id="apiResult" hidden></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============ 站点设置弹窗 ============ -->
+<div class="modal-mask" id="siteModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="siteModalTitle">
+    <div class="modal-head">
+      <div>
+        <h2 id="siteModalTitle">选择站点</h2>
+        <p>两个站点各自独立账号与会话，切换后请重新「测试连接」</p>
+      </div>
+      <button class="modal-x" id="siteModalClose" title="关闭" type="button">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="site-choices" id="siteChoices"></div>
+      <p class="field-tip">网址可直接改，改完保存即写入 <b>config.json</b>，下次启动沿用。</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" id="siteCancel" type="button">取消</button>
+      <button class="btn primary" id="siteSave" type="button">保存并切换</button>
+    </div>
+  </div>
+</div>
+
+<div class="ui-update" id="uiUpdate" hidden>
+  <span>界面已更新，当前页面还是旧版本</span>
+  <button class="btn xs primary" id="uiReload" type="button">立即刷新</button>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="/static/app.js?v=0"></script>
+</body>
+</html>

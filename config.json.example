@@ -1,0 +1,23 @@
+{
+  "site": "62",
+  "sites": {
+    "62": {
+      "base": "http://oj.example.com",
+      "name": "站点 1",
+      "username": "",
+      "password": ""
+    },
+    "61": {
+      "base": "http://oj2.example.com",
+      "name": "站点 2",
+      "username": "",
+      "password": ""
+    }
+  },
+  "api_base": "http://127.0.0.1:7863/v1",
+  "api_key": "",
+  "model": "cn:deepseek-v4.1-flash",
+  "max_retry": 3,
+  "limit": 0,
+  "contest_id": null
+}

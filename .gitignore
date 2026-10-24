@@ -1,0 +1,32 @@
+# ---- 本地敏感配置，绝对不要提交 ----
+config.json
+config.*.json
+!config.json.example
+.env
+
+# ---- 登录态缓存（含 sessionid，等同密码） ----
+session_*.json
+session_*.user
+session_*
+
+# ---- 运行产物 ----
+work/
+*.exe
+*.log
+server.log
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ---- 截图 / 临时图片 ----
+*.png
+*.jpg
+*.jpeg
+*.webp
+
+# ---- 编辑器 ----
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

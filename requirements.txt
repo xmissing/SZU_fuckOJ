@@ -1,0 +1,9 @@
+# ---- 依赖 ----
+fastapi>=0.100
+uvicorn>=0.23
+requests>=2.28
+
+# ---- 仅 oj_browser.py（浏览器版登录 / 截图）需要，核心流程不用 ----
+numpy>=1.24
+pillow>=9.5
+DrissionPage>=4.0
