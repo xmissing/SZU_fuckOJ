@@ -14,6 +14,7 @@ const state = {
   // 必须和 site 分开记：一旦两者错位，回写就会把 A 的账号写进 B。
   formSite: null,
   sites: {},
+  user: null,           // 当前站点登录昵称（由后端 login 事件回填）
   problems: [],
   contest: null,
   done: 0,
@@ -104,6 +105,7 @@ function siteBaseOf(k) {
 function setLoginBadge(user) {
   const el = $('siteLogin');
   const out = $('btnLogout');
+  state.user = user || null;
   if (user) {
     el.textContent = '已登录 ' + user;
     el.className = 'site-login on';
@@ -112,7 +114,7 @@ function setLoginBadge(user) {
   } else {
     el.textContent = '未登录';
     el.className = 'site-login';
-    el.title = '该站点尚未登录，点「测试连接」登录';
+    el.title = '该站点尚未登录，点「开始刷题」会自动登录';
     if (out) out.hidden = true;
   }
 }
@@ -471,6 +473,10 @@ function applyState(s) {
   if (s.contest) state.contest = s.contest;
   if (typeof s.done === 'number') state.done = s.done;
   if (typeof s.total === 'number') state.total = s.total;
+  // 任务内部自动登录成功后，后端会把昵称推过来，这里顺手点亮徽章
+  if ('user' in s && (!s.site || s.site === state.site)) {
+    setLoginBadge(s.user || null);
+  }
   state.current = s.current || null;
   state.error = s.error || null;
   state.startedAt = s.started_at || null;
@@ -558,7 +564,8 @@ async function doRun() {
     });
     const d = await r.json();
     if (d.ok) {
-      toast(`任务已启动（${d.site}${d.limit ? ' · 最多 ' + d.limit + ' 题' : ' · 全部'}）`, 'ok');
+      const who = state.user ? '已登录 ' + state.user : '正在自动登录，登录成功后立即开始';
+      toast(`任务已启动（${d.site}${d.limit ? ' · 最多 ' + d.limit + ' 题' : ' · 全部'}）· ${who}`, 'ok');
       state.startedAt = Date.now() / 1000;
       $('statElapsed').textContent = '00:00';
     } else {

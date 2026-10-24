@@ -67,15 +67,24 @@ def get_session():
             try:
                 r = s.get(f'{_ojs()}/user/profile/', timeout=10)
                 if r.status_code == 200:
-                    print(f'[登录] 复用会话: {r.json().get("nickname")}')
+                    nick = r.json().get('nickname') or USERNAME
+                    print(f'[登录] 复用会话: {nick}')
+                    emit('login', user=nick, site=SITE, base=oj_login.SITE_BASE, cached=True)
                     return s
             except Exception:
                 pass
     lg = OJLogin(USERNAME, PASSWORD)
-    print('[登录] AI 识别验证码中...')
+    print('[登录] 未登录/会话已失效，AI 识别验证码中...')
     if not lg.login():
         raise SystemExit('登录失败')
     save_session(lg.s.cookies.get_dict())
+    # 登录成功：把昵称抛给上层（控制台据此把徽章点亮），然后继续做题
+    try:
+        nick = lg.s.get(f'{_ojs()}/user/profile/', timeout=10).json().get('nickname') or USERNAME
+    except Exception:
+        nick = USERNAME
+    print(f'[登录] 成功: {nick}')
+    emit('login', user=nick, site=SITE, base=oj_login.SITE_BASE, cached=False)
     return lg.s
 
 

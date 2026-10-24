@@ -49,6 +49,7 @@ LOGIN_LOCK = threading.Lock()   # 同一时刻只允许一个「测试连接」�
 STATE = {
     'running': False,
     'site': '62',
+    'user': None,          # 当前站点的登录昵称，登录成功后由 login 事件回填
     'contest': None,
     'problems': [],
     'current': None,
@@ -184,7 +185,13 @@ class LogWriter(io.TextIOBase):
 # ---------------- 事件处理 ----------------
 def on_event(kind, data):
     global STATE
-    if kind == 'contest':
+    if kind == 'login':
+        # 任务内部自动登录完成 → 点亮前端徽章，别让界面一直显示「未登录」
+        STATE['user'] = data.get('user')
+        if data.get('site'):
+            STATE['site'] = data.get('site')
+        log(f"[登录] {'复用会话' if data.get('cached') else '新登录'}: {data.get('user')}", 'success')
+    elif kind == 'contest':
         STATE['contest'] = {'id': data.get('id'), 'title': data.get('title'),
                             'end_time': data.get('end_time')}
         if data.get('site'):
@@ -225,9 +232,11 @@ def run_job(contest_id=None, site='62', limit=0):
     sys.stdout = writer
     try:
         STATE.update({'running': True, 'started_at': time.time(), 'finished_at': None,
-                      'error': None, 'summary': None, 'current': None, 'site': site})
+                      'error': None, 'summary': None, 'current': None, 'site': site,
+                      'user': None})
         push_state()
         log(f'=== 任务开始（站点 {site}）===', 'success')
+        log('[登录] 检查会话：没登录/已失效会自动登录，登录成功后直接开始做题')
         oj_main.STOP_FLAG = False
         oj_main.main(contest_id, limit=limit)
         log('=== 任务结束 ===', 'success')
@@ -384,6 +393,12 @@ async def api_run(req: Request):
     site = apply_cfg(cur, cfg.get('site'))
     if STATE['running']:
         return {'ok': False, 'msg': '任务已在运行'}
+    # 没有账号就没法「自动登录」，早点说清楚，别让任务线程白跑一趟
+    info = cur['sites'].get(site, {})
+    if not (info.get('username') and info.get('password')):
+        return {'ok': False, 'msg': f'站点 {site} 还没填学号/密码，无法自动登录'}
+    if LOGIN_LOCK.locked():
+        return {'ok': False, 'msg': '正在登录中（验证码识别约几秒~1 分钟），等登录结束再开始'}
     limit = int(cur.get('limit') or 0)
     threading.Thread(target=run_job, args=(cur.get('contest_id'), site, limit), daemon=True).start()
     return {'ok': True, 'site': site, 'limit': limit}
@@ -456,6 +471,9 @@ async def api_logout(req: Request):
         log(f'[退出] {err}', 'error')
         return {'ok': False, 'msg': err}
     log(f"[退出] 站点 {site} 本地会话已清除：{removed or '本来就没有缓存'}", 'warn')
+    if STATE.get('site') == site:
+        STATE['user'] = None
+        push_state()
     return {'ok': True, 'site': site, 'removed': removed}
 
 
